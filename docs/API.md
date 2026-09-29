@@ -1,97 +1,152 @@
 # API: instrukcja użycia
 
-Ten dokument pokazuje, jak ręcznie przetestować API. Pełna specyfikacja dla narzędzi takich jak Postman i Swagger znajduje się w [openapi.yaml](openapi.yaml).
+Ten dokument opisuje, co wysłać w każdym żądaniu. Możesz użyć Postmana, Insomnii, Thunder Client lub dowolnego klienta HTTP. Pełna specyfikacja OpenAPI jest w [openapi.yaml](openapi.yaml).
 
-## Adres API
+## Przygotowanie
 
-Lokalnie API działa pod adresem `http://localhost:3000/api`. W przykładach poniżej używany jest PowerShell w Windows. Uruchom wcześniej API i lokalną bazę zgodnie z instrukcją w głównym [README](../README.md).
+Uruchom API i bazę zgodnie z głównym [README](../README.md). Lokalny adres bazowy to:
 
-```powershell
-$baseUrl = "http://localhost:3000/api"
+```text
+http://localhost:3000/api
 ```
 
-## 1. Rejestracja
+W Postmanie możesz zaimportować `openapi.yaml` przez **Import** i wybrać plik z repozytorium. Alternatywnie utwórz żądania ręcznie według przykładów niżej.
 
-`POST /auth/register`
+Dla żądań z JSON-em ustaw nagłówek:
 
-```powershell
-$registerBody = @{
-  email = "ania@example.com"
-  password = "BezpieczneHaslo123!"
-  displayName = "Ania"
-} | ConvertTo-Json
+| Nagłówek | Wartość |
+| --- | --- |
+| `Content-Type` | `application/json` |
 
-Invoke-RestMethod -Method Post `
-  -Uri "$baseUrl/auth/register" `
-  -ContentType "application/json" `
-  -Body $registerBody
+Żądania do profilu i wylogowania wymagają tokenu otrzymanego po logowaniu:
+
+| Nagłówek | Wartość |
+| --- | --- |
+| `Authorization` | `Bearer <token>` |
+
+W Postmanie możesz ustawić go w zakładce **Authorization**, typ **Bearer Token**. Wklej sam token, bez prefiksu `Bearer`.
+
+## Rejestracja
+
+**Metoda i URL:** `POST http://localhost:3000/api/auth/register`
+
+**Headers:** `Content-Type: application/json`
+
+**Body** (raw, JSON):
+
+```json
+{
+  "email": "ania@example.com",
+  "password": "BezpieczneHaslo123!",
+  "displayName": "Ania"
+}
 ```
 
-Odpowiedź `201 Created` zawiera nowy profil użytkownika. Rejestracja nie loguje automatycznie, dlatego następnie wyślij żądanie logowania.
+Odpowiedź `201 Created`:
 
-## 2. Logowanie
-
-`POST /auth/login`
-
-```powershell
-$loginBody = @{
-  email = "ania@example.com"
-  password = "BezpieczneHaslo123!"
-} | ConvertTo-Json
-
-$login = Invoke-RestMethod -Method Post `
-  -Uri "$baseUrl/auth/login" `
-  -ContentType "application/json" `
-  -Body $loginBody
-
-$token = $login.token
-$login
+```json
+{
+  "message": "Konto zostało utworzone.",
+  "user": {
+    "id": "1",
+    "email": "ania@example.com",
+    "displayName": "Ania",
+    "bio": ""
+  }
+}
 ```
 
-Odpowiedź zawiera token JWT, termin jego ważności (`expiresAt`) oraz profil. Token jest ważny przez godzinę. Kolejne przykłady używają zmiennej `$token`.
+Rejestracja nie loguje automatycznie użytkownika. Zaloguj się, aby dostać token.
 
-## 3. Pobranie profilu
+## Logowanie
 
-`GET /auth/me`
+**Metoda i URL:** `POST http://localhost:3000/api/auth/login`
 
-```powershell
-Invoke-RestMethod -Method Get `
-  -Uri "$baseUrl/auth/me" `
-  -Headers @{ Authorization = "Bearer $token" }
+**Headers:** `Content-Type: application/json`
+
+**Body** (raw, JSON):
+
+```json
+{
+  "email": "ania@example.com",
+  "password": "BezpieczneHaslo123!"
+}
 ```
 
-Profil zawiera `id`, `email`, `displayName` i `bio`.
+Odpowiedź `200 OK`:
 
-## 4. Edycja profilu
-
-`PATCH /auth/me`
-
-Możesz zmienić nazwę wyświetlaną, krótki opis albo oba pola. E-mail jest tylko do odczytu.
-
-```powershell
-$profileBody = @{
-  displayName = "Ania Kowalska"
-  bio = "Lubię podróże i kawę."
-} | ConvertTo-Json
-
-Invoke-RestMethod -Method Patch `
-  -Uri "$baseUrl/auth/me" `
-  -Headers @{ Authorization = "Bearer $token" } `
-  -ContentType "application/json" `
-  -Body $profileBody
+```json
+{
+  "token": "<JWT>",
+  "expiresAt": "2026-09-29T15:00:00.000Z",
+  "user": {
+    "id": "1",
+    "email": "ania@example.com",
+    "displayName": "Ania",
+    "bio": ""
+  }
+}
 ```
 
-## 5. Wylogowanie
+Token jest ważny przez godzinę. Skopiuj wartość `token`; będzie potrzebna w nagłówku `Authorization` kolejnych żądań.
 
-`POST /auth/logout`
+## Pobranie profilu
 
-```powershell
-Invoke-RestMethod -Method Post `
-  -Uri "$baseUrl/auth/logout" `
-  -Headers @{ Authorization = "Bearer $token" }
+**Metoda i URL:** `GET http://localhost:3000/api/auth/me`
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Body:** brak
+
+Odpowiedź `200 OK`:
+
+```json
+{
+  "user": {
+    "id": "1",
+    "email": "ania@example.com",
+    "displayName": "Ania",
+    "bio": ""
+  }
+}
 ```
 
-Wylogowanie unieważnia bieżącą sesję w bazie. Ten token nie będzie już działał; zaloguj się ponownie, aby uzyskać nowy.
+## Edycja profilu
+
+**Metoda i URL:** `PATCH http://localhost:3000/api/auth/me`
+
+**Headers:** `Authorization: Bearer <token>` oraz `Content-Type: application/json`
+
+**Body** (raw, JSON):
+
+```json
+{
+  "displayName": "Ania Kowalska",
+  "bio": "Lubię podróże i kawę."
+}
+```
+
+Możesz wysłać samo `displayName`, samo `bio` albo oba pola. E-mail jest tylko do odczytu i nie może znaleźć się w body.
+
+Odpowiedź `200 OK` zawiera obiekt `user` z aktualnym profilem, w takim samym formacie jak odpowiedź z pobrania profilu.
+
+## Wylogowanie
+
+**Metoda i URL:** `POST http://localhost:3000/api/auth/logout`
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Body:** brak
+
+Odpowiedź `200 OK`:
+
+```json
+{
+  "message": "Wylogowano pomyślnie."
+}
+```
+
+Wylogowanie unieważnia sesję w bazie. Token nie będzie już działał.
 
 ## Walidacja i błędy
 
@@ -99,20 +154,20 @@ Wylogowanie unieważnia bieżącą sesję w bazie. Ten token nie będzie już dz
 - Hasło przy rejestracji musi mieć co najmniej 8 i maksymalnie 72 bajty UTF-8. Jest przechowywane jako hash bcrypt, nigdy w postaci jawnej.
 - Nazwa wyświetlana ma od 1 do 80 znaków.
 - Opis profilu ma maksymalnie 280 znaków.
-- Przy edycji profilu wyślij co najmniej jedno z pól `displayName` lub `bio`. Dodatkowe pola, w tym `email`, są odrzucane.
+- Przy edycji profilu wyślij co najmniej jedno z pól `displayName` lub `bio`. Nieznane pola są odrzucane.
 
-Najczęstsze kody odpowiedzi:
+Najczęstsze statusy odpowiedzi: `201` — konto utworzone, `200` — sukces, `400` — niepoprawny JSON lub dane, `401` — błędne dane logowania albo brak/niepoprawny/wygasły/unieważniony token, `404` — nie znaleziono użytkownika, `409` — konto z tym e-mailem już istnieje, `500` — nieoczekiwany błąd serwera.
 
-- `201` — konto utworzone.
-- `200` — żądanie wykonane.
-- `400` — niepoprawny JSON lub dane; odpowiedź walidacji zawiera `details` z nazwami pól i komunikatami.
-- `401` — brak, niepoprawny, wygasły lub unieważniony token; przy logowaniu również nieprawidłowy e-mail lub hasło.
-- `404` — nie znaleziono użytkownika.
-- `409` — konto z podanym adresem e-mail już istnieje.
-- `500` — nieoczekiwany błąd serwera, na przykład problem z bazą danych.
+Błąd walidacji zawiera `error` oraz `details` z nazwą pola i komunikatem, na przykład:
 
-Chronione endpointy wymagają nagłówka:
-
-```text
-Authorization: Bearer <token>
+```json
+{
+  "error": "Nieprawidłowe dane.",
+  "details": [
+    {
+      "field": "email",
+      "message": "Podaj poprawny adres e-mail."
+    }
+  ]
+}
 ```
