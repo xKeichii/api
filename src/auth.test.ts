@@ -25,3 +25,23 @@ describe('auth request validation', () => {
     assert.equal(profileSchema.safeParse({ displayName: 'Nowa nazwa', bio: 'Opis' }).success, true);
   });
 });
+
+describe('CORS', () => {
+  it('allows the configured frontend origin and handles preflight requests', async () => {
+    const response = await request(app)
+      .options('/api/auth/me')
+      .set('Origin', 'https://app.54-36-162-208.sslip.io')
+      .set('Access-Control-Request-Method', 'GET');
+
+    assert.equal(response.status, 204);
+    assert.equal(response.headers['access-control-allow-origin'], 'https://app.54-36-162-208.sslip.io');
+  });
+
+  it('does not allow other origins', async () => {
+    const response = await request(app)
+      .get('/api/auth/me')
+      .set('Origin', 'https://other.example');
+
+    assert.equal(response.headers['access-control-allow-origin'], undefined);
+  });
+});
