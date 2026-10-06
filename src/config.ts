@@ -16,7 +16,7 @@ export function getConfig(): AppConfig {
   const databaseUser = process.env.DB_USER;
   const databasePassword = process.env.DB_PASSWORD;
   const databaseName = process.env.DB_NAME;
-  const port = Number(process.env.PORT ?? 3000);
+  const port = Number(process.env.PORT ?? 8080);
   const databasePort = Number(process.env.DB_PORT ?? 3306);
 
   if (!jwtSecret || jwtSecret.length < 32) {
