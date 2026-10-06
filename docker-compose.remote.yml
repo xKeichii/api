@@ -4,12 +4,18 @@ services:
       context: .
     restart: unless-stopped
     environment:
-      PORT: 3000
+      PORT: ${PORT:-8080}
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env.remote}
       DB_HOST: ${DB_HOST_DOCKER:?Set DB_HOST_DOCKER in .env.remote}
       DB_PORT: ${DB_PORT_DOCKER:-3306}
       DB_USER: ${DB_USER:?Set DB_USER in .env.remote}
       DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env.remote}
       DB_NAME: ${DB_NAME:?Set DB_NAME in .env.remote}
+      SEED_USER_1_EMAIL: ${SEED_USER_1_EMAIL:?Set SEED_USER_1_EMAIL in .env.remote}
+      SEED_USER_1_PASSWORD: ${SEED_USER_1_PASSWORD:?Set SEED_USER_1_PASSWORD in .env.remote}
+      SEED_USER_1_DISPLAY_NAME: ${SEED_USER_1_DISPLAY_NAME:?Set SEED_USER_1_DISPLAY_NAME in .env.remote}
+      SEED_USER_2_EMAIL: ${SEED_USER_2_EMAIL:?Set SEED_USER_2_EMAIL in .env.remote}
+      SEED_USER_2_PASSWORD: ${SEED_USER_2_PASSWORD:?Set SEED_USER_2_PASSWORD in .env.remote}
+      SEED_USER_2_DISPLAY_NAME: ${SEED_USER_2_DISPLAY_NAME:?Set SEED_USER_2_DISPLAY_NAME in .env.remote}
     ports:
-      - "${PORT:-3000}:3000"
+      - "${PORT:-8080}:${PORT:-8080}"
