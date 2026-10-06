@@ -19,11 +19,11 @@ For direct development without Docker, provide the required environment variable
 npm run dev
 ```
 
-The API listens on `http://localhost:3000` by default.
+The API listens on `http://localhost:8080` by default.
 
 ## API Documentation
 
-Human-readable instructions with ready-to-run PowerShell requests are in [`docs/API.md`](docs/API.md). The complete OpenAPI 3.1 specification, including request and response schemas, validation constraints, status codes, and Bearer JWT security, is in [`docs/openapi.yaml`](docs/openapi.yaml). The server URL for local development is `http://localhost:3000/api`.
+Human-readable instructions with ready-to-run PowerShell requests are in [`docs/API.md`](docs/API.md). The complete OpenAPI 3.1 specification, including request and response schemas, validation constraints, status codes, and Bearer JWT security, is in [`docs/openapi.yaml`](docs/openapi.yaml). The server URL for local development is `http://localhost:8080/api`.
 
 ## Docker
 
@@ -37,7 +37,7 @@ Copy-Item .env.local.example .env.local
 docker compose --env-file .env.local up --build
 ```
 
-This starts the API and a local MariaDB container. The database schema is applied automatically when the database volume is first initialized; its data persists in the `mariadb_data` volume. The API is available at `http://localhost:3000`, and MariaDB is available to host tools on port `3307` by default. Stop the containers with `docker compose down`; this keeps database data. To delete the local database data as well, use `docker compose down -v`.
+This starts the API and a local MariaDB container. At every API startup, missing database tables and the two configured seed users are created automatically; existing users are not duplicated. Local demo credentials are listed in `.env.local.example`. The database data persists in the `mariadb_data` volume. The API is available at `http://localhost:8080`, and MariaDB is available to host tools on port `3307` by default. Stop the containers with `docker compose down`; this keeps database data. To delete the local database data as well, use `docker compose down -v`.
 
 The `.env.local.example` credentials are only for local development. Change them before use outside your machine. Never commit `.env.local` or use production database credentials in a local test stack.
 
@@ -52,6 +52,8 @@ docker compose --env-file .env.remote -f docker-compose.remote.yml up --build
 ```
 
 Apply the SQL migration in `migrations/001_create_auth_tables.sql` to the remote database first. The API container then uses the same database and data as your server. Ensure its firewall and database grants permit connections from your Docker host. Do not expose the database publicly just to make Docker connect; use a private network or VPN where possible. The local Compose setup creates a separate database with separate data; it does not copy or synchronize the server database.
+
+Set `SEED_USER_1_EMAIL`, `SEED_USER_1_PASSWORD`, `SEED_USER_1_DISPLAY_NAME`, and the matching `SEED_USER_2_*` values in `.env.remote` to create two initial accounts. Use unique passwords; these accounts are added only once, and later startups do not reset their passwords.
 
 `.env.local` and `.env.remote` are separate, ignored files. The local Compose command reads only `.env.local`; the remote Compose command reads only `.env.remote`. Your existing `.env` file is not used or changed by either Docker command.
 
