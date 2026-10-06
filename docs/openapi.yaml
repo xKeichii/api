@@ -5,7 +5,7 @@ info:
   description: >-
     API rejestracji, logowania JWT, zarządzania sesją oraz profilu użytkownika.
 servers:
-  - url: http://{hostname}:3000/api
+  - url: http://{hostname}:8080/api
     description: Lokalny serwer deweloperski
     variables:
       hostname:
