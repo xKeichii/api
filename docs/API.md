@@ -7,7 +7,7 @@ Ten dokument opisuje, co wysłać w każdym żądaniu. Możesz użyć Postmana, 
 Uruchom API i bazę zgodnie z głównym [README](../README.md). Lokalny adres bazowy to:
 
 ```text
-http://localhost:3000/api
+http://localhost:8080/api
 ```
 
 W Postmanie możesz zaimportować `openapi.yaml` przez **Import** i wybrać plik z repozytorium. Alternatywnie utwórz żądania ręcznie według przykładów niżej.
@@ -28,7 +28,7 @@ W Postmanie możesz ustawić go w zakładce **Authorization**, typ **Bearer Toke
 
 ## Rejestracja
 
-**Metoda i URL:** `POST http://localhost:3000/api/auth/register`
+**Metoda i URL:** `POST http://localhost:8080/api/auth/register`
 
 **Headers:** `Content-Type: application/json`
 
@@ -60,7 +60,7 @@ Rejestracja nie loguje automatycznie użytkownika. Zaloguj się, aby dostać tok
 
 ## Logowanie
 
-**Metoda i URL:** `POST http://localhost:3000/api/auth/login`
+**Metoda i URL:** `POST http://localhost:8080/api/auth/login`
 
 **Headers:** `Content-Type: application/json`
 
@@ -92,7 +92,7 @@ Token jest ważny przez godzinę. Skopiuj wartość `token`; będzie potrzebna w
 
 ## Pobranie profilu
 
-**Metoda i URL:** `GET http://localhost:3000/api/auth/me`
+**Metoda i URL:** `GET http://localhost:8080/api/auth/me`
 
 **Headers:** `Authorization: Bearer <token>`
 
@@ -113,7 +113,7 @@ Odpowiedź `200 OK`:
 
 ## Edycja profilu
 
-**Metoda i URL:** `PATCH http://localhost:3000/api/auth/me`
+**Metoda i URL:** `PATCH http://localhost:8080/api/auth/me`
 
 **Headers:** `Authorization: Bearer <token>` oraz `Content-Type: application/json`
 
