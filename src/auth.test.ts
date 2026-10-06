@@ -37,6 +37,14 @@ describe('CORS', () => {
     assert.equal(response.headers['access-control-allow-origin'], 'https://app.54-36-162-208.sslip.io');
   });
 
+  it('allows the local frontend origin', async () => {
+    const response = await request(app)
+      .get('/api/auth/me')
+      .set('Origin', 'http://localhost:5173');
+
+    assert.equal(response.headers['access-control-allow-origin'], 'http://localhost:5173');
+  });
+
   it('does not allow other origins', async () => {
     const response = await request(app)
       .get('/api/auth/me')
