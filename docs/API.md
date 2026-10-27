@@ -130,6 +130,30 @@ Możesz wysłać samo `displayName`, samo `bio` albo oba pola. E-mail jest tylko
 
 Odpowiedź `200 OK` zawiera obiekt `user` z aktualnym profilem, w takim samym formacie jak odpowiedź z pobrania profilu.
 
+## Usuwanie konta
+
+**Metoda i URL:** `DELETE http://localhost:8080/api/auth/me`
+
+**Headers:** `Authorization: Bearer <token>` oraz `Content-Type: application/json`
+
+**Body** (raw, JSON):
+
+```json
+{
+  "password": "BezpieczneHaslo123!"
+}
+```
+
+Podaj aktualne hasło, aby potwierdzić usunięcie konta. Odpowiedź `200 OK`:
+
+```json
+{
+  "message": "Konto zostało usunięte."
+}
+```
+
+Usunięcie konta unieważnia wszystkie jego sesje. Operacja jest nieodwracalna.
+
 ## Wylogowanie
 
 **Metoda i URL:** `POST http://localhost:3000/api/auth/logout`
@@ -156,7 +180,7 @@ Wylogowanie unieważnia sesję w bazie. Token nie będzie już działał.
 - Opis profilu ma maksymalnie 280 znaków.
 - Przy edycji profilu wyślij co najmniej jedno z pól `displayName` lub `bio`. Nieznane pola są odrzucane.
 
-Najczęstsze statusy odpowiedzi: `201` — konto utworzone, `200` — sukces, `400` — niepoprawny JSON lub dane, `401` — błędne dane logowania albo brak/niepoprawny/wygasły/unieważniony token, `404` — nie znaleziono użytkownika, `409` — konto z tym e-mailem już istnieje, `500` — nieoczekiwany błąd serwera.
+Najczęstsze statusy odpowiedzi: `201` — konto utworzone, `200` — sukces, `400` — niepoprawny JSON lub dane, `401` — błędne dane logowania, nieprawidłowe hasło przy usuwaniu konta albo brak/niepoprawny/wygasły/unieważniony token, `404` — nie znaleziono użytkownika, `409` — konto z tym e-mailem już istnieje, `500` — nieoczekiwany błąd serwera.
 
 Błąd walidacji zawiera `error` oraz `details` z nazwą pola i komunikatem, na przykład:
 

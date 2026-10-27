@@ -133,6 +133,58 @@ paths:
           $ref: '#/components/responses/ServerError'
 
   /auth/me:
+    delete:
+      tags: [Profile]
+      operationId: deleteCurrentUser
+      summary: Usuwa konto zalogowanego użytkownika
+      description: >-
+        Wymaga podania aktualnego hasła. Usunięcie konta unieważnia wszystkie
+        powiązane sesje i jest nieodwracalne.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteAccountRequest'
+            example:
+              password: BezpieczneHaslo123!
+      responses:
+        '200':
+          description: Konto zostało usunięte.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message:
+                    type: string
+                    example: Konto zostało usunięte.
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          description: Nieprawidłowe hasło lub brak prawidłowej sesji.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                wrongPassword:
+                  value:
+                    error: Nieprawidłowe hasło.
+                unauthorized:
+                  value:
+                    error: Wymagany jest token Bearer.
+        '404':
+          description: Nie znaleziono użytkownika.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/ServerError'
     get:
       tags: [Profile]
       operationId: getCurrentUser
@@ -261,6 +313,16 @@ components:
         bio:
           type: string
           maxLength: 280
+    DeleteAccountRequest:
+      type: object
+      additionalProperties: false
+      required: [password]
+      properties:
+        password:
+          type: string
+          minLength: 1
+          maxLength: 72
+          description: Aktualne hasło; maksymalnie 72 bajty UTF-8.
     UserProfile:
       type: object
       required: [id, email, displayName, bio]
