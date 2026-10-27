@@ -93,6 +93,25 @@ export async function revokeSession(userId: string, sessionId: string): Promise<
   await getDatabase().execute('DELETE FROM auth_sessions WHERE id = ? AND user_id = ?', [sessionId, userId]);
 }
 
+export async function deleteUserAccount(userId: string, password: string): Promise<void> {
+  const [rows] = await getDatabase().execute<UserRow[]>(
+    'SELECT id, email, display_name, bio, password_hash FROM users WHERE id = ?',
+    [userId],
+  );
+  const user = rows[0];
+  if (!user) {
+    throw new HttpError(404, 'Nie znaleziono użytkownika.');
+  }
+  if (!(await bcrypt.compare(password, user.password_hash))) {
+    throw new HttpError(401, 'Nieprawidłowe hasło.');
+  }
+
+  const [result] = await getDatabase().execute<ResultSetHeader>('DELETE FROM users WHERE id = ?', [userId]);
+  if (result.affectedRows === 0) {
+    throw new HttpError(404, 'Nie znaleziono użytkownika.');
+  }
+}
+
 export async function getUserProfile(userId: string): Promise<UserProfile> {
   const [rows] = await getDatabase().execute<UserRow[]>(
     'SELECT id, email, display_name, bio, password_hash FROM users WHERE id = ?',
