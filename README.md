@@ -23,7 +23,9 @@ The API listens on `http://localhost:8080` by default.
 
 ## API Documentation
 
-Human-readable instructions with ready-to-run PowerShell requests are in [`docs/API.md`](docs/API.md). The complete OpenAPI 3.1 specification, including request and response schemas, validation constraints, status codes, and Bearer JWT security, is in [`docs/openapi.yaml`](docs/openapi.yaml). The server URL for local development is `http://localhost:8080/api`.
+Interactive Swagger UI is available at `http://localhost:8080/api-docs`. The OpenAPI 3.1 specification is maintained in [`docs/openapi.json`](docs/openapi.json) and can also be imported into tools such as Postman.
+
+Human-readable instructions with ready-to-run PowerShell requests are in [`docs/API.md`](docs/API.md). The complete OpenAPI 3.1 specification, including request and response schemas, validation constraints, status codes, and Bearer JWT security, is in [`docs/openapi.json`](docs/openapi.json). The server URL for local development is `http://localhost:8080/api`.
 
 ## Docker
 

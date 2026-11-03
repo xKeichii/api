@@ -1,6 +1,6 @@
 # API: instrukcja użycia
 
-Ten dokument opisuje, co wysłać w każdym żądaniu. Możesz użyć Postmana, Insomnii, Thunder Client lub dowolnego klienta HTTP. Pełna specyfikacja OpenAPI jest w [openapi.yaml](openapi.yaml).
+Ten dokument opisuje, co wysłać w każdym żądaniu. Możesz użyć Postmana, Insomnii, Thunder Client lub dowolnego klienta HTTP. Interaktywna dokumentacja Swagger UI jest dostępna pod adresem `http://localhost:8080/api-docs`, a pełna specyfikacja OpenAPI jest w [openapi.json](openapi.json).
 
 ## Przygotowanie
 
@@ -10,7 +10,7 @@ Uruchom API i bazę zgodnie z głównym [README](../README.md). Lokalny adres ba
 http://localhost:8080/api
 ```
 
-W Postmanie możesz zaimportować `openapi.yaml` przez **Import** i wybrać plik z repozytorium. Alternatywnie utwórz żądania ręcznie według przykładów niżej.
+W Postmanie możesz zaimportować `openapi.json` przez **Import** i wybrać plik z repozytorium. Alternatywnie utwórz żądania ręcznie według przykładów niżej.
 
 Dla żądań z JSON-em ustaw nagłówek:
 
