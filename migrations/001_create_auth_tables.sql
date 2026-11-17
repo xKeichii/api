@@ -1,4 +1,4 @@
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   email VARCHAR(254) NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
@@ -10,7 +10,7 @@ CREATE TABLE users (
   UNIQUE KEY users_email_unique (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE auth_sessions (
+CREATE TABLE IF NOT EXISTS auth_sessions (
   id CHAR(36) NOT NULL,
   user_id BIGINT UNSIGNED NOT NULL,
   expires_at DATETIME NOT NULL,
