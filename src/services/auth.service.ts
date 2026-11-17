@@ -13,6 +13,13 @@ interface UserRow extends RowDataPacket {
   display_name: string;
   bio: string;
   password_hash: string;
+  role: UserRole;
+}
+
+export type UserRole = 'user' | 'admin';
+
+interface ActiveSessionRow extends RowDataPacket {
+  role: string;
 }
 
 function toProfile(user: UserRow): UserProfile {
@@ -26,7 +33,7 @@ function toProfile(user: UserRow): UserProfile {
 
 async function findUserByEmail(email: string): Promise<UserRow | undefined> {
   const [rows] = await getDatabase().execute<UserRow[]>(
-    'SELECT id, email, display_name, bio, password_hash FROM users WHERE email = ?',
+    'SELECT id, email, display_name, bio, password_hash, role FROM users WHERE email = ?',
     [email],
   );
   return rows[0];
@@ -67,7 +74,7 @@ export async function loginUser(email: string, password: string) {
   const sessionId = randomUUID();
   const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
   const token = jwt.sign(
-    { sub: user.id, jti: sessionId },
+    { sub: user.id, jti: sessionId, role: user.role },
     getConfig().jwtSecret,
     { algorithm: 'HS256', expiresIn: '1h' },
   );
@@ -81,12 +88,24 @@ export async function loginUser(email: string, password: string) {
   return { token, expiresAt: expiresAt.toISOString(), user: toProfile(user) };
 }
 
-export async function findActiveSession(userId: string, sessionId: string): Promise<boolean> {
-  const [rows] = await getDatabase().execute<RowDataPacket[]>(
-    'SELECT id FROM auth_sessions WHERE id = ? AND user_id = ? AND expires_at > UTC_TIMESTAMP()',
+export async function findActiveSessionRole(userId: string, sessionId: string): Promise<UserRole | null> {
+  const [rows] = await getDatabase().execute<ActiveSessionRow[]>(
+    `SELECT users.role
+     FROM auth_sessions
+     INNER JOIN users ON users.id = auth_sessions.user_id
+     WHERE auth_sessions.id = ?
+       AND auth_sessions.user_id = ?
+       AND auth_sessions.expires_at > UTC_TIMESTAMP()`,
     [sessionId, userId],
   );
-  return rows.length > 0;
+  const role = rows[0]?.role;
+  if (role === undefined) {
+    return null;
+  }
+  if (role !== 'user' && role !== 'admin') {
+    throw new Error(`Unsupported user role "${role}" in the database.`);
+  }
+  return role;
 }
 
 export async function revokeSession(userId: string, sessionId: string): Promise<void> {
@@ -95,7 +114,7 @@ export async function revokeSession(userId: string, sessionId: string): Promise<
 
 export async function deleteUserAccount(userId: string, password: string): Promise<void> {
   const [rows] = await getDatabase().execute<UserRow[]>(
-    'SELECT id, email, display_name, bio, password_hash FROM users WHERE id = ?',
+    'SELECT id, email, display_name, bio, password_hash, role FROM users WHERE id = ?',
     [userId],
   );
   const user = rows[0];
@@ -114,7 +133,7 @@ export async function deleteUserAccount(userId: string, password: string): Promi
 
 export async function getUserProfile(userId: string): Promise<UserProfile> {
   const [rows] = await getDatabase().execute<UserRow[]>(
-    'SELECT id, email, display_name, bio, password_hash FROM users WHERE id = ?',
+    'SELECT id, email, display_name, bio, password_hash, role FROM users WHERE id = ?',
     [userId],
   );
   const user = rows[0];
