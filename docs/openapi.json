@@ -3,7 +3,7 @@
   "info": {
     "title": "Express TypeScript API",
     "version": "1.0.0",
-    "description": "API rejestracji, logowania JWT, zarządzania sesją oraz profilu użytkownika."
+    "description": "API rejestracji, logowania JWT, zarządzania sesją, profilu użytkownika oraz produktów."
   },
   "servers": [
     {
@@ -25,9 +25,258 @@
     {
       "name": "Profile",
       "description": "Profil zalogowanego użytkownika"
+    },
+    {
+      "name": "Products",
+      "description": "Publiczny katalog produktów i administracyjne zarządzanie produktami"
     }
   ],
   "paths": {
+    "/products": {
+      "get": {
+        "tags": [
+          "Products"
+        ],
+        "operationId": "listProducts",
+        "summary": "Pobiera stronicowaną listę produktów",
+        "security": [],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Strona produktów.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Products"
+        ],
+        "operationId": "createProduct",
+        "summary": "Tworzy produkt",
+        "description": "Wymaga tokenu administratora. Data addedAt jest nadawana przez bazę.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductInput"
+              },
+              "example": {
+                "name": "Kawa ziarnista",
+                "description": "Kawa arabica 1 kg",
+                "price": 49.99,
+                "quantity": 12
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Produkt utworzony.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/products/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          }
+        }
+      ],
+      "get": {
+        "tags": [
+          "Products"
+        ],
+        "operationId": "getProduct",
+        "summary": "Pobiera produkt",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Produkt.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "description": "Nie znaleziono produktu.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Products"
+        ],
+        "operationId": "updateProduct",
+        "summary": "Aktualizuje produkt",
+        "description": "Wymaga tokenu administratora. Należy przesłać wszystkie pola produktu poza addedAt.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Zaktualizowany produkt.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "description": "Nie znaleziono produktu.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Products"
+        ],
+        "operationId": "deleteProduct",
+        "summary": "Usuwa produkt",
+        "description": "Wymaga tokenu administratora.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Produkt usunięty."
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "description": "Nie znaleziono produktu.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
     "/auth/register": {
       "post": {
         "tags": [
@@ -516,6 +765,113 @@
           }
         }
       },
+      "ProductInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "description",
+          "price",
+          "quantity"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 5000
+          },
+          "price": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 99999999.99,
+            "multipleOf": 0.01
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4294967295
+          }
+        }
+      },
+      "Product": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "description",
+          "price",
+          "addedAt",
+          "quantity"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "1"
+          },
+          "name": {
+            "type": "string",
+            "example": "Kawa ziarnista"
+          },
+          "description": {
+            "type": "string",
+            "example": "Kawa arabica 1 kg"
+          },
+          "price": {
+            "type": "number",
+            "example": 49.99
+          },
+          "addedAt": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "quantity": {
+            "type": "integer",
+            "example": 12
+          }
+        }
+      },
+      "ProductEnvelope": {
+        "type": "object",
+        "required": [
+          "item"
+        ],
+        "properties": {
+          "item": {
+            "$ref": "#/components/schemas/Product"
+          }
+        }
+      },
+      "ProductPage": {
+        "type": "object",
+        "required": [
+          "items",
+          "page",
+          "limit",
+          "total"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Product"
+            }
+          },
+          "page": {
+            "type": "integer"
+          },
+          "limit": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          }
+        }
+      },
       "UserProfile": {
         "type": "object",
         "required": [
@@ -644,6 +1000,19 @@
                   "error": "Sesja wygasła lub została wylogowana."
                 }
               }
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Użytkownik nie ma uprawnień administratora.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "error": "Brak wymaganych uprawnień."
             }
           }
         }
