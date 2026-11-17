@@ -1,25 +1,20 @@
-import {Request, Response, NextFunction} from "express";
+import type { RequestHandler } from 'express';
+import { HttpError } from '../utils/http-error.js';
 
 type Role = 'admin' | 'user';
 
-export const authorize = (...roles: Role[]) => {
-  return (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    if(!req.auth) {
-      return res.status(401).json({
-        message: 'Unauthorized'
-      });
+export const authorize = (...roles: Role[]): RequestHandler => {
+  return (request, _response, next) => {
+    if (!request.auth) {
+      next(new HttpError(401, 'Wymagane jest uwierzytelnienie.'));
+      return;
     }
 
-    if(!roles.includes(req.auth.role)) {
-      return res.status(403).json({
-        message: "Forbidden"
-      })
+    if (!roles.includes(request.auth.role)) {
+      next(new HttpError(403, 'Brak wymaganych uprawnień.'));
+      return;
     }
 
     next();
-  }
+  };
 }
