@@ -1,6 +1,6 @@
 # API: instrukcja użycia
 
-Ten dokument opisuje, co wysłać w każdym żądaniu. Możesz użyć Postmana, Insomnii, Thunder Client lub dowolnego klienta HTTP. Interaktywna dokumentacja Swagger UI jest dostępna pod adresem `http://localhost:8080/api-docs`, a pełna specyfikacja OpenAPI jest w [openapi.json](openapi.json).
+Ten dokument opisuje, co wysłać w każdym żądaniu. Możesz użyć Postmana, Insomnii, Thunder Client lub dowolnego klienta HTTP. Interaktywna dokumentacja Swagger UI jest dostępna lokalnie pod adresem `http://localhost:8080/api-docs` lub na serwerze pod adresem `https://api.54-36-162-208.sslip.io/api-docs`. W Swagger UI możesz wybrać serwer docelowy; pełna specyfikacja OpenAPI jest w [openapi.json](openapi.json).
 
 ## Przygotowanie
 

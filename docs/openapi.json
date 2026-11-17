@@ -7,6 +7,10 @@
   },
   "servers": [
     {
+      "url": "https://api.54-36-162-208.sslip.io/api",
+      "description": "Serwer API na serwerze"
+    },
+    {
       "url": "http://{hostname}:8080/api",
       "description": "Lokalny serwer deweloperski",
       "variables": {
