@@ -172,6 +172,77 @@ Odpowiedź `200 OK`:
 
 Wylogowanie unieważnia sesję w bazie. Token nie będzie już działał.
 
+## Produkty
+
+Lista i szczegóły produktów są publiczne. Tworzenie, edycja i usuwanie wymagają tokenu administratora w nagłówku `Authorization: Bearer <token>`.
+
+### Lista produktów
+
+**Metoda i URL:** `GET http://localhost:8080/api/products?page=1&limit=20`
+
+Parametry `page` i `limit` są opcjonalne. Domyślne wartości to `1` i `20`; `limit` może wynosić maksymalnie `100`.
+
+Odpowiedź `200 OK`:
+
+```json
+{
+  "items": [
+    {
+      "id": "1",
+      "name": "Kawa ziarnista",
+      "description": "Kawa arabica 1 kg",
+      "price": 49.99,
+      "addedAt": "2026-11-17T08:30:00.000Z",
+      "quantity": 12
+    }
+  ],
+  "page": 1,
+  "limit": 20,
+  "total": 137
+}
+```
+
+### Pobranie produktu
+
+**Metoda i URL:** `GET http://localhost:8080/api/products/1`
+
+Odpowiedź `200 OK` zawiera obiekt `{ "item": { ... } }`. Nieistniejący produkt zwraca `404`.
+
+### Utworzenie produktu
+
+**Metoda i URL:** `POST http://localhost:8080/api/products`
+
+**Headers:** `Authorization: Bearer <token>` oraz `Content-Type: application/json`
+
+**Body** (raw, JSON):
+
+```json
+{
+  "name": "Kawa ziarnista",
+  "description": "Kawa arabica 1 kg",
+  "price": 49.99,
+  "quantity": 12
+}
+```
+
+Data `addedAt` jest nadawana automatycznie przez bazę. Odpowiedź `201 Created` zawiera utworzony produkt jako `item`.
+
+### Aktualizacja produktu
+
+**Metoda i URL:** `PUT http://localhost:8080/api/products/1`
+
+**Headers:** `Authorization: Bearer <token>` oraz `Content-Type: application/json`
+
+Wyślij wszystkie pola `name`, `description`, `price` i `quantity` w body, w takim samym formacie jak przy tworzeniu. Odpowiedź `200 OK` zawiera zaktualizowany produkt. Nieistniejący produkt zwraca `404`.
+
+### Usunięcie produktu
+
+**Metoda i URL:** `DELETE http://localhost:8080/api/products/1`
+
+**Headers:** `Authorization: Bearer <token>`
+
+Odpowiedź `204 No Content` oznacza powodzenie. Nieistniejący produkt zwraca `404`.
+
 ## Walidacja i błędy
 
 - E-mail musi mieć poprawny format; jest zapisywany małymi literami.
@@ -179,6 +250,7 @@ Wylogowanie unieważnia sesję w bazie. Token nie będzie już działał.
 - Nazwa wyświetlana ma od 1 do 80 znaków.
 - Opis profilu ma maksymalnie 280 znaków.
 - Przy edycji profilu wyślij co najmniej jedno z pól `displayName` lub `bio`. Nieznane pola są odrzucane.
+- Nazwa produktu ma od 1 do 160 znaków, opis maksymalnie 5000 znaków, cena jest nieujemna i ma maksymalnie dwa miejsca po przecinku, a ilość jest nieujemną liczbą całkowitą.
 
 Najczęstsze statusy odpowiedzi: `201` — konto utworzone, `200` — sukces, `400` — niepoprawny JSON lub dane, `401` — błędne dane logowania, nieprawidłowe hasło przy usuwaniu konta albo brak/niepoprawny/wygasły/unieważniony token, `404` — nie znaleziono użytkownika, `409` — konto z tym e-mailem już istnieje, `500` — nieoczekiwany błąd serwera.
 
