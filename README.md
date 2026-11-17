@@ -67,6 +67,13 @@ Set `SEED_USER_1_EMAIL`, `SEED_USER_1_PASSWORD`, `SEED_USER_1_DISPLAY_NAME`, and
 - `GET /api/auth/me` requires a bearer token and returns the current profile.
 - `PATCH /api/auth/me` requires a bearer token and accepts `displayName` and/or `bio`. Email is read-only.
 
+## Products API
+
+- `GET /api/products?page=1&limit=20` publicly returns a paginated product list (`items`, `page`, `limit`, `total`); `limit` is capped at 100.
+- `GET /api/products/:id` publicly returns a product.
+- `POST /api/products`, `PUT /api/products/:id`, and `DELETE /api/products/:id` require an administrator bearer token.
+- Products contain `name`, `description`, `price`, `addedAt`, and `quantity`. The database sets `addedAt` when a product is created.
+
 Registration constraints: valid email, password of 8-72 UTF-8 bytes, and display name of 1-80 characters. The profile description is limited to 280 characters. Validation errors return `400`, duplicate email returns `409`, and invalid or revoked credentials return `401`.
 
 The JWT secret and database credentials are read from environment variables. Private `.env` files are excluded from version control; never put real credentials in an example env file or commit a private env file.
