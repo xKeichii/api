@@ -13,7 +13,7 @@ REST API starter built with Express 5 and TypeScript.
 npm install
 ```
 
-For direct development without Docker, provide the required environment variables to the Node.js process and apply the database schema in `migrations/001_create_auth_tables.sql`, then start the development server:
+For direct development without Docker, provide the required environment variables to the Node.js process, then start the development server. The API applies any pending migrations before it starts listening:
 
 ```bash
 npm run dev
@@ -39,7 +39,7 @@ Copy-Item .env.local.example .env.local
 docker compose --env-file .env.local up --build
 ```
 
-This starts the API and a local MariaDB container. At every API startup, missing database tables and the two configured seed users are created automatically; existing users are not duplicated. Local demo credentials are listed in `.env.local.example`. The database data persists in the `mariadb_data` volume. The API is available at `http://localhost:8080`, and MariaDB is available to host tools on port `3307` by default. Stop the containers with `docker compose down`; this keeps database data. To delete the local database data as well, use `docker compose down -v`.
+This starts the API and a local MariaDB container. At startup, the API applies numbered SQL files from `migrations/` that are not recorded in `schema_migrations`, then creates the two configured seed users if they do not already exist. Migration files that have been applied must not be edited or removed; add a new, higher-numbered file for each schema change. The database data persists in the `mariadb_data` volume. The API is available at `http://localhost:8080`, and MariaDB is available to host tools on port `3307` by default. Stop the containers with `docker compose down`; this keeps database data. To delete the local database data as well, use `docker compose down -v`.
 
 The `.env.local.example` credentials are only for local development. Change them before use outside your machine. Never commit `.env.local` or use production database credentials in a local test stack.
 
@@ -53,7 +53,7 @@ Copy-Item .env.remote.example .env.remote
 docker compose --env-file .env.remote -f docker-compose.remote.yml up --build
 ```
 
-Apply the SQL migration in `migrations/001_create_auth_tables.sql` to the remote database first. The API container then uses the same database and data as your server. Ensure its firewall and database grants permit connections from your Docker host. Do not expose the database publicly just to make Docker connect; use a private network or VPN where possible. The local Compose setup creates a separate database with separate data; it does not copy or synchronize the server database.
+The API applies pending migrations to the remote database on startup. The API container then uses the same database and data as your server. Ensure its firewall and database grants permit connections from your Docker host. Do not expose the database publicly just to make Docker connect; use a private network or VPN where possible. The local Compose setup creates a separate database with separate data; it does not copy or synchronize the server database.
 
 Set `SEED_USER_1_EMAIL`, `SEED_USER_1_PASSWORD`, `SEED_USER_1_DISPLAY_NAME`, and the matching `SEED_USER_2_*` values in `.env.remote` to create two initial accounts. Use unique passwords; these accounts are added only once, and later startups do not reset their passwords.
 
