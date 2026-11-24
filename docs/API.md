@@ -196,9 +196,9 @@ Lista i szczegóły produktów są publiczne. Tworzenie, edycja i usuwanie wymag
 
 ### Lista produktów
 
-**Metoda i URL:** `GET http://localhost:8080/api/products?page=1&limit=20&sortBy=price&order=asc`
+**Metoda i URL:** `GET http://localhost:8080/api/products?page=1&limit=20&minPrice=10&maxPrice=50&search=kawa&availability=available&sortBy=price&order=asc`
 
-Parametry `page` i `limit` są opcjonalne. Domyślne wartości to `1` i `20`; `limit` może wynosić maksymalnie `100`. Sortowanie wybierzesz parametrami `sortBy` (`addedAt`, `name`, `price` lub `quantity`) i `order` (`asc` albo `desc`). Domyślnie lista jest sortowana po dacie dodania malejąco. Przy jednakowej wartości kolejność rozstrzyga identyfikator malejąco.
+Parametry `page` i `limit` są opcjonalne. Domyślne wartości to `1` i `20`; `limit` może wynosić maksymalnie `100`. Produkty można filtrować po cenie (`minPrice`, `maxPrice` — wartości graniczne są wliczane), tekście (`search` — fragment nazwy lub opisu, bez rozróżniania wielkości liter) oraz dostępności (`availability=available` dla `quantity > 0`, `availability=unavailable` dla `quantity = 0`). Jeśli podasz oba limity ceny, `minPrice` nie może być większe od `maxPrice`. Sortowanie wybierzesz parametrami `sortBy` (`addedAt`, `name`, `price` lub `quantity`) i `order` (`asc` albo `desc`). Domyślnie lista jest sortowana po dacie dodania malejąco. Przy jednakowej wartości kolejność rozstrzyga identyfikator malejąco.
 
 Odpowiedź `200 OK`:
 
