@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { randomUUID } from 'node:crypto';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import jwt from 'jsonwebtoken';
 import type { ResultSetHeader, RowDataPacket } from 'mysql2';
 import { getConfig } from '../config.js';
@@ -22,6 +22,15 @@ interface ActiveSessionRow extends RowDataPacket {
   role: string;
 }
 
+interface RefreshSessionRow extends RowDataPacket {
+  id: string;
+  user_id: string;
+  role: string;
+}
+
+const ACCESS_TOKEN_TTL_MS = 60 * 60 * 1000;
+const REFRESH_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
 function toProfile(user: UserRow): UserProfile {
   return {
     id: user.id,
@@ -37,6 +46,22 @@ async function findUserByEmail(email: string): Promise<UserRow | undefined> {
     [email],
   );
   return rows[0];
+}
+
+function createAccessToken(userId: string, sessionId: string, role: UserRole): string {
+  return jwt.sign(
+    { sub: userId, jti: sessionId, role },
+    getConfig().jwtSecret,
+    { algorithm: 'HS256', expiresIn: '1h' },
+  );
+}
+
+function hashRefreshToken(token: string): string {
+  return createHash('sha256').update(token).digest('hex');
+}
+
+function createRefreshToken(): string {
+  return randomBytes(32).toString('base64url');
 }
 
 export async function registerUser(input: {
@@ -72,20 +97,65 @@ export async function loginUser(email: string, password: string) {
   }
 
   const sessionId = randomUUID();
-  const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
-  const token = jwt.sign(
-    { sub: user.id, jti: sessionId, role: user.role },
-    getConfig().jwtSecret,
-    { algorithm: 'HS256', expiresIn: '1h' },
-  );
+  const expiresAt = new Date(Date.now() + ACCESS_TOKEN_TTL_MS);
+  const refreshExpiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_MS);
+  const token = createAccessToken(user.id, sessionId, user.role);
+  const refreshToken = createRefreshToken();
 
   await getDatabase().execute('DELETE FROM auth_sessions WHERE expires_at <= UTC_TIMESTAMP()');
   await getDatabase().execute(
-    'INSERT INTO auth_sessions (id, user_id, expires_at) VALUES (?, ?, ?)',
-    [sessionId, user.id, expiresAt],
+    'INSERT INTO auth_sessions (id, user_id, expires_at, refresh_token_hash) VALUES (?, ?, ?, ?)',
+    [sessionId, user.id, refreshExpiresAt, hashRefreshToken(refreshToken)],
   );
 
-  return { token, expiresAt: expiresAt.toISOString(), user: toProfile(user) };
+  return {
+    token,
+    expiresAt: expiresAt.toISOString(),
+    refreshToken,
+    refreshExpiresAt: refreshExpiresAt.toISOString(),
+    user: toProfile(user),
+  };
+}
+
+export async function refreshUserSession(refreshToken: string) {
+  const tokenHash = hashRefreshToken(refreshToken);
+  const [rows] = await getDatabase().execute<RefreshSessionRow[]>(
+    `SELECT auth_sessions.id, auth_sessions.user_id, users.role
+     FROM auth_sessions
+     INNER JOIN users ON users.id = auth_sessions.user_id
+     WHERE auth_sessions.refresh_token_hash = ?
+       AND auth_sessions.expires_at > UTC_TIMESTAMP()`,
+    [tokenHash],
+  );
+  const session = rows[0];
+  if (!session) {
+    throw new HttpError(401, 'Refresh token jest nieprawidłowy lub wygasł.');
+  }
+  if (session.role !== 'user' && session.role !== 'admin') {
+    throw new Error(`Unsupported user role "${session.role}" in the database.`);
+  }
+
+  const nextRefreshToken = createRefreshToken();
+  const refreshExpiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_MS);
+  const [result] = await getDatabase().execute<ResultSetHeader>(
+    `UPDATE auth_sessions
+     SET refresh_token_hash = ?, expires_at = ?
+     WHERE id = ?
+       AND refresh_token_hash = ?
+       AND expires_at > UTC_TIMESTAMP()`,
+    [hashRefreshToken(nextRefreshToken), refreshExpiresAt, session.id, tokenHash],
+  );
+  if (result.affectedRows !== 1) {
+    throw new HttpError(401, 'Refresh token jest nieprawidłowy lub wygasł.');
+  }
+
+  const expiresAt = new Date(Date.now() + ACCESS_TOKEN_TTL_MS);
+  return {
+    token: createAccessToken(session.user_id, session.id, session.role),
+    expiresAt: expiresAt.toISOString(),
+    refreshToken: nextRefreshToken,
+    refreshExpiresAt: refreshExpiresAt.toISOString(),
+  };
 }
 
 export async function findActiveSessionRole(userId: string, sessionId: string): Promise<UserRole | null> {
@@ -114,7 +184,7 @@ export async function revokeSession(userId: string, sessionId: string): Promise<
 
 export async function deleteUserAccount(userId: string, password: string): Promise<void> {
   const [rows] = await getDatabase().execute<UserRow[]>(
-    'SELECT id, email, display_name, bio, password_hash, role FROM users WHERE id = ?',
+    'SELECT id, email, display_name, bio, password_hash FROM users WHERE id = ?',
     [userId],
   );
   const user = rows[0];
@@ -133,7 +203,7 @@ export async function deleteUserAccount(userId: string, password: string): Promi
 
 export async function getUserProfile(userId: string): Promise<UserProfile> {
   const [rows] = await getDatabase().execute<UserRow[]>(
-    'SELECT id, email, display_name, bio, password_hash, role FROM users WHERE id = ?',
+    'SELECT id, email, display_name, bio, password_hash FROM users WHERE id = ?',
     [userId],
   );
   const user = rows[0];
