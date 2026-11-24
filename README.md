@@ -62,7 +62,8 @@ Set `SEED_USER_1_EMAIL`, `SEED_USER_1_PASSWORD`, `SEED_USER_1_DISPLAY_NAME`, and
 ## Authentication API
 
 - `POST /api/auth/register` accepts `{ "email", "password", "displayName" }` and returns `201` with the created user. Passwords are stored as bcrypt hashes.
-- `POST /api/auth/login` accepts `{ "email", "password" }` and returns a JWT, its `expiresAt` timestamp, and the user profile.
+- `POST /api/auth/login` accepts `{ "email", "password" }` and returns a one-hour JWT in `token`, plus a rotating refresh token valid for 30 days.
+- `POST /api/auth/refresh` accepts `{ "refreshToken" }` and returns a new JWT and refresh token. Each refresh token can be used once.
 - `POST /api/auth/logout` requires `Authorization: Bearer <token>` and revokes that session in MariaDB.
 - `GET /api/auth/me` requires a bearer token and returns the current profile.
 - `PATCH /api/auth/me` requires a bearer token and accepts `displayName` and/or `bio`. Email is read-only.
