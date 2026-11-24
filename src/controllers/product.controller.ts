@@ -31,11 +31,27 @@ export const paginationSchema = z.object({
 export const productListQuerySchema = paginationSchema.extend({
   sortBy: z.enum(['addedAt', 'name', 'price', 'quantity']).default('addedAt'),
   order: z.enum(['asc', 'desc']).default('desc'),
+  minPrice: z.coerce.number().finite().min(0).max(99_999_999.99)
+    .refine((value) => Number(value.toFixed(2)) === value, 'Cena może mieć maksymalnie dwa miejsca po przecinku.')
+    .optional(),
+  maxPrice: z.coerce.number().finite().min(0).max(99_999_999.99)
+    .refine((value) => Number(value.toFixed(2)) === value, 'Cena może mieć maksymalnie dwa miejsca po przecinku.')
+    .optional(),
+  search: z.string().trim().min(1).max(160).optional(),
+  availability: z.enum(['available', 'unavailable']).optional(),
+}).superRefine((query, context) => {
+  if (query.minPrice !== undefined && query.maxPrice !== undefined && query.minPrice > query.maxPrice) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['maxPrice'],
+      message: 'Cena maksymalna nie może być niższa od minimalnej.',
+    });
+  }
 });
 
 export const listProducts: RequestHandler = async (request, response) => {
-  const { page, limit, sortBy, order } = productListQuerySchema.parse(request.query);
-  response.status(200).json(await findProducts(page, limit, sortBy, order));
+  const { page, limit, sortBy, order, ...filters } = productListQuerySchema.parse(request.query);
+  response.status(200).json(await findProducts(page, limit, sortBy, order, filters));
 };
 
 export const getProduct: RequestHandler = async (request, response) => {
