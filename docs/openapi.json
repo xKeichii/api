@@ -383,6 +383,8 @@
                   "required": [
                     "token",
                     "expiresAt",
+                    "refreshToken",
+                    "refreshExpiresAt",
                     "user"
                   ],
                   "properties": {
@@ -393,7 +395,16 @@
                     "expiresAt": {
                       "type": "string",
                       "format": "date-time",
-                      "description": "Czas wygaśnięcia tokenu w UTC."
+                      "description": "Czas wygaśnięcia JWT w UTC."
+                    },
+                    "refreshToken": {
+                      "type": "string",
+                      "description": "Jednorazowy token do uzyskania nowego zestawu tokenów."
+                    },
+                    "refreshExpiresAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "Czas wygaśnięcia refresh tokenu w UTC."
                     },
                     "user": {
                       "$ref": "#/components/schemas/UserProfile"
@@ -415,6 +426,79 @@
                 },
                 "example": {
                   "error": "Nieprawidłowy adres e-mail lub hasło."
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "operationId": "refresh",
+        "summary": "Odświeża tokeny sesji",
+        "description": "Wymienia jednorazowy refresh token na nowy JWT i nowy refresh token. Refresh tokeny wygasają po 30 dniach.",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tokeny zostały odświeżone.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "token",
+                    "expiresAt",
+                    "refreshToken",
+                    "refreshExpiresAt"
+                  ],
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "description": "JWT podpisany algorytmem HS256."
+                    },
+                    "expiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "refreshToken": {
+                      "type": "string",
+                      "description": "Nowy jednorazowy refresh token."
+                    },
+                    "refreshExpiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "description": "Refresh token jest nieprawidłowy, wykorzystany lub wygasł.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -735,6 +819,20 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 72
+          }
+        }
+      },
+      "RefreshRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "refreshToken"
+        ],
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{43}$",
+            "description": "Refresh token otrzymany podczas logowania lub poprzedniego odświeżenia."
           }
         }
       },
