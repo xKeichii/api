@@ -51,6 +51,27 @@ describe('product request validation', () => {
     assert.equal(productListQuerySchema.safeParse({ order: 'sideways' }).success, false);
   });
 
+  it('validates product filters and rejects an inverted price range', () => {
+    assert.deepEqual(productListQuerySchema.parse({
+      minPrice: '10.50',
+      maxPrice: '50',
+      search: '  coffee  ',
+      availability: 'available',
+    }), {
+      page: 1,
+      limit: 20,
+      sortBy: 'addedAt',
+      order: 'desc',
+      minPrice: 10.5,
+      maxPrice: 50,
+      search: 'coffee',
+      availability: 'available',
+    });
+    assert.equal(productListQuerySchema.safeParse({ minPrice: '50', maxPrice: '10' }).success, false);
+    assert.equal(productListQuerySchema.safeParse({ availability: 'in-stock' }).success, false);
+    assert.equal(productListQuerySchema.safeParse({ search: '   ' }).success, false);
+  });
+
   it('accepts only positive unsigned 64-bit product IDs', () => {
     assert.equal(productIdSchema.safeParse('42').success, true);
     assert.equal(productIdSchema.safeParse('0').success, false);
