@@ -196,9 +196,9 @@ Lista i szczegóły produktów są publiczne. Tworzenie, edycja i usuwanie wymag
 
 ### Lista produktów
 
-**Metoda i URL:** `GET http://localhost:8080/api/products?page=1&limit=20`
+**Metoda i URL:** `GET http://localhost:8080/api/products?page=1&limit=20&sortBy=price&order=asc`
 
-Parametry `page` i `limit` są opcjonalne. Domyślne wartości to `1` i `20`; `limit` może wynosić maksymalnie `100`.
+Parametry `page` i `limit` są opcjonalne. Domyślne wartości to `1` i `20`; `limit` może wynosić maksymalnie `100`. Sortowanie wybierzesz parametrami `sortBy` (`addedAt`, `name`, `price` lub `quantity`) i `order` (`asc` albo `desc`). Domyślnie lista jest sortowana po dacie dodania malejąco. Przy jednakowej wartości kolejność rozstrzyga identyfikator malejąco.
 
 Odpowiedź `200 OK`:
 
