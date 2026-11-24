@@ -43,12 +43,27 @@ function toProduct(row: ProductRow): Product {
 
 const productColumns = 'id, name, description, price, added_at, quantity';
 
-export async function listProducts(page: number, limit: number) {
+const sortColumns = {
+  addedAt: 'added_at',
+  name: 'name',
+  price: 'price',
+  quantity: 'quantity',
+} as const;
+
+export type ProductSortBy = keyof typeof sortColumns;
+export type ProductSortOrder = 'asc' | 'desc';
+
+export async function listProducts(
+  page: number,
+  limit: number,
+  sortBy: ProductSortBy,
+  order: ProductSortOrder,
+) {
   const offset = (page - 1) * limit;
   const [rows] = await getDatabase().execute<ProductRow[]>(
     `SELECT ${productColumns}
      FROM products
-     ORDER BY added_at DESC, id DESC
+     ORDER BY ${sortColumns[sortBy]} ${order === 'asc' ? 'ASC' : 'DESC'}, id DESC
      LIMIT ? OFFSET ?`,
     [limit, offset],
   );
