@@ -43,6 +43,7 @@
         ],
         "operationId": "listProducts",
         "summary": "Pobiera stronicowaną listę produktów",
+        "description": "Domyślnie sortuje po dacie dodania malejąco. Przy jednakowej wartości sortowania kolejność rozstrzyga identyfikator malejąco.",
         "security": [],
         "parameters": [
           {
@@ -52,6 +53,32 @@
               "type": "integer",
               "minimum": 1,
               "default": 1
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "addedAt",
+                "name",
+                "price",
+                "quantity"
+              ],
+              "default": "addedAt"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
             }
           },
           {
