@@ -28,9 +28,14 @@ export const paginationSchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });
 
+export const productListQuerySchema = paginationSchema.extend({
+  sortBy: z.enum(['addedAt', 'name', 'price', 'quantity']).default('addedAt'),
+  order: z.enum(['asc', 'desc']).default('desc'),
+});
+
 export const listProducts: RequestHandler = async (request, response) => {
-  const { page, limit } = paginationSchema.parse(request.query);
-  response.status(200).json(await findProducts(page, limit));
+  const { page, limit, sortBy, order } = productListQuerySchema.parse(request.query);
+  response.status(200).json(await findProducts(page, limit, sortBy, order));
 };
 
 export const getProduct: RequestHandler = async (request, response) => {
