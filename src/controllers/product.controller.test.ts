@@ -6,6 +6,7 @@ import {
   createProductSchema,
   paginationSchema,
   productIdSchema,
+  productListQuerySchema,
   updateProductSchema,
 } from './product.controller.js';
 
@@ -31,6 +32,23 @@ describe('product request validation', () => {
     assert.deepEqual(paginationSchema.parse({}), { page: 1, limit: 20 });
     assert.equal(paginationSchema.safeParse({ page: '0' }).success, false);
     assert.equal(paginationSchema.safeParse({ limit: '101' }).success, false);
+  });
+
+  it('applies sorting defaults and accepts only supported sort fields and directions', () => {
+    assert.deepEqual(productListQuerySchema.parse({}), {
+      page: 1,
+      limit: 20,
+      sortBy: 'addedAt',
+      order: 'desc',
+    });
+    assert.deepEqual(productListQuerySchema.parse({ sortBy: 'price', order: 'asc' }), {
+      page: 1,
+      limit: 20,
+      sortBy: 'price',
+      order: 'asc',
+    });
+    assert.equal(productListQuerySchema.safeParse({ sortBy: 'unknown' }).success, false);
+    assert.equal(productListQuerySchema.safeParse({ order: 'sideways' }).success, false);
   });
 
   it('accepts only positive unsigned 64-bit product IDs', () => {
