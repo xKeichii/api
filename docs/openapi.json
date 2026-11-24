@@ -43,7 +43,7 @@
         ],
         "operationId": "listProducts",
         "summary": "Pobiera stronicowaną listę produktów",
-        "description": "Domyślnie sortuje po dacie dodania malejąco. Przy jednakowej wartości sortowania kolejność rozstrzyga identyfikator malejąco.",
+        "description": "Pozwala filtrować po przedziale ceny, fragmencie nazwy lub opisu oraz dostępności. Domyślnie sortuje po dacie dodania malejąco; przy jednakowej wartości kolejność rozstrzyga identyfikator malejąco.",
         "security": [],
         "parameters": [
           {
@@ -89,6 +89,50 @@
               "minimum": 1,
               "maximum": 100,
               "default": 20
+            }
+          },
+          {
+            "name": "minPrice",
+            "in": "query",
+            "description": "Minimalna cena, włącznie.",
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 99999999.99,
+              "multipleOf": 0.01
+            }
+          },
+          {
+            "name": "maxPrice",
+            "in": "query",
+            "description": "Maksymalna cena, włącznie. Nie może być mniejsza od minPrice.",
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 99999999.99,
+              "multipleOf": 0.01
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Fragment nazwy lub opisu produktu; wyszukiwanie nie rozróżnia wielkości liter.",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160
+            }
+          },
+          {
+            "name": "availability",
+            "in": "query",
+            "description": "available oznacza quantity > 0, unavailable oznacza quantity = 0.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "available",
+                "unavailable"
+              ]
             }
           }
         ],
