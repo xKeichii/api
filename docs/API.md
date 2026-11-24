@@ -79,6 +79,8 @@ Odpowiedź `200 OK`:
 {
   "token": "<JWT>",
   "expiresAt": "2026-09-29T15:00:00.000Z",
+  "refreshToken": "<refresh token>",
+  "refreshExpiresAt": "2026-10-29T14:00:00.000Z",
   "user": {
     "id": "1",
     "email": "ania@example.com",
@@ -88,7 +90,23 @@ Odpowiedź `200 OK`:
 }
 ```
 
-Token jest ważny przez godzinę. Skopiuj wartość `token`; będzie potrzebna w nagłówku `Authorization` kolejnych żądań.
+JWT w polu `token` jest ważny przez godzinę. Używaj go w nagłówku `Authorization`. Refresh token jest ważny przez 30 dni i służy wyłącznie do uzyskania nowego zestawu tokenów:
+
+## Odświeżenie tokenu
+
+**Metoda i URL:** `POST http://localhost:8080/api/auth/refresh`
+
+**Headers:** `Content-Type: application/json`
+
+**Body** (raw, JSON):
+
+```json
+{
+  "refreshToken": "<refresh token otrzymany przy logowaniu>"
+}
+```
+
+Odpowiedź `200 OK` ma pola `token`, `expiresAt`, `refreshToken` i `refreshExpiresAt`. Każde odświeżenie unieważnia poprzedni refresh token — zapisz i używaj nowego tokenu z odpowiedzi. Nieprawidłowy, wykorzystany lub wygasły refresh token zwraca `401`.
 
 ## Pobranie profilu
 
