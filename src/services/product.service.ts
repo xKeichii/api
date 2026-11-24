@@ -52,23 +52,63 @@ const sortColumns = {
 
 export type ProductSortBy = keyof typeof sortColumns;
 export type ProductSortOrder = 'asc' | 'desc';
+export type ProductAvailability = 'available' | 'unavailable';
+
+export interface ProductListFilters {
+  minPrice?: number;
+  maxPrice?: number;
+  search?: string;
+  availability?: ProductAvailability;
+}
+
+function buildProductFilters(filters: ProductListFilters) {
+  const conditions: string[] = [];
+  const values: Array<number | string> = [];
+
+  if (filters.minPrice !== undefined) {
+    conditions.push('price >= ?');
+    values.push(filters.minPrice);
+  }
+  if (filters.maxPrice !== undefined) {
+    conditions.push('price <= ?');
+    values.push(filters.maxPrice);
+  }
+  if (filters.search !== undefined) {
+    conditions.push('(LOCATE(?, name) > 0 OR LOCATE(?, description) > 0)');
+    values.push(filters.search, filters.search);
+  }
+  if (filters.availability === 'available') {
+    conditions.push('quantity > 0');
+  } else if (filters.availability === 'unavailable') {
+    conditions.push('quantity = 0');
+  }
+
+  return {
+    whereClause: conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '',
+    values,
+  };
+}
 
 export async function listProducts(
   page: number,
   limit: number,
   sortBy: ProductSortBy,
   order: ProductSortOrder,
+  filters: ProductListFilters,
 ) {
   const offset = (page - 1) * limit;
+  const { whereClause, values } = buildProductFilters(filters);
   const [rows] = await getDatabase().execute<ProductRow[]>(
     `SELECT ${productColumns}
      FROM products
+     ${whereClause}
      ORDER BY ${sortColumns[sortBy]} ${order === 'asc' ? 'ASC' : 'DESC'}, id DESC
      LIMIT ? OFFSET ?`,
-    [limit, offset],
+    [...values, limit, offset],
   );
   const [countRows] = await getDatabase().execute<CountRow[]>(
-    'SELECT COUNT(*) AS total FROM products',
+    `SELECT COUNT(*) AS total FROM products ${whereClause}`,
+    values,
   );
 
   return {
