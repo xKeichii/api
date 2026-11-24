@@ -22,6 +22,13 @@ describe('auth request validation', () => {
     assert.equal(deleteAccount.status, 401);
   });
 
+  it('rejects malformed refresh tokens without contacting the database', async () => {
+    const response = await request(app).post('/api/auth/refresh').send({ refreshToken: 'invalid' });
+
+    assert.equal(response.status, 400);
+    assert.match(response.body.error, /Nieprawidłowe dane/);
+  });
+
   it('does not allow changing the read-only email field', () => {
     assert.equal(profileSchema.safeParse({ email: 'new@example.com' }).success, false);
     assert.equal(profileSchema.safeParse({ displayName: 'Nowa nazwa', bio: 'Opis' }).success, true);
